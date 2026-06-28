@@ -1,0 +1,5 @@
+command /screen:
+    trigger:
+        send "&aStand here and run this in your terminal:" to player
+        send "&epython3 ~/minecraft-1.21.11/screen_capture.py" to player
+        send "&7The canvas will be built at your current position." to player
