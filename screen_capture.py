@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Minecraft Screen Display
-Captures your screen and renders it in Minecraft using colored blocks via RCON.
-Stand where you want the canvas, then run this script.
+blockcast — stream your screen into Minecraft in real time using colored blocks.
+macOS only (uses Quartz for window capture).
+
+Stand where you want the canvas, run /screen in-game, then run this script.
 """
 
+import ctypes
 import time
 import sys
 import signal
@@ -14,9 +16,8 @@ from concurrent.futures import ThreadPoolExecutor
 from mcrcon import MCRcon
 import mss
 from PIL import Image
-from Quartz import (CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly,
-                    kCGNullWindowID, CGDisplayBounds, CGMainDisplayID,
-                    CGDisplayPixelsWide, CGWindowListCreateImage, CGRectInfinite,
+from Quartz import (CGWindowListCopyWindowInfo, kCGNullWindowID,
+                    CGWindowListCreateImage, CGRectInfinite,
                     CGImageGetWidth, CGImageGetHeight,
                     CGColorSpaceCreateDeviceRGB, CGBitmapContextCreate,
                     CGContextDrawImage, CGRectMake,
@@ -187,7 +188,6 @@ def pick_window():
 
 def grab_window(window_id):
     """Capture a specific window by ID using Quartz — works even when covered."""
-    import ctypes
     cg_img = CGWindowListCreateImage(
         CGRectInfinite,
         kCGWindowListOptionIncludingWindow,
@@ -308,7 +308,7 @@ class RconPool:
 def main():
     lut = build_lut()
 
-    window_id, window_label = pick_window()
+    window_id, _ = pick_window()
 
     print(f"Resolution: {SCREEN_W}x{SCREEN_H} | Workers: {NUM_WORKERS} | FPS cap: {TARGET_FPS}")
     pool = RconPool(NUM_WORKERS)
@@ -320,7 +320,7 @@ def main():
     frame_gap = 1.0 / TARGET_FPS
     frame_n   = 0
 
-    with mss.mss() as sct:
+    with mss.MSS() as sct:
         monitor = sct.monitors[1]
 
         with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:

@@ -1,5 +1,7 @@
 # blockcast
 
+> **macOS only** — uses Quartz for window capture.
+
 Stream your screen into Minecraft in real time using colored blocks.
 
 Your screen is downscaled to a configurable resolution (default 160×90) and rendered as a wall of blocks in-world, updated continuously. Each block represents one pixel of the downscaled image, matched to the closest available block color.
