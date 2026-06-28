@@ -4,6 +4,14 @@
 
 Stream your screen into Minecraft in real time using colored blocks.
 
+## Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ronanzcasey-dot/blockcast/main/install.sh | bash
+```
+
+This installs dependencies, asks for your username and RCON password, and copies the Skript file into your server automatically.
+
 Your screen is downscaled to a configurable resolution (default 160×90) and rendered as a wall of blocks in-world, updated continuously. Each block represents one pixel of the downscaled image, matched to the closest available block color.
 
 ## How it works
