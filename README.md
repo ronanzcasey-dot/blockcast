@@ -1,7 +1,5 @@
 # blockcast
 
-> **macOS only** — uses Quartz for window capture.
-
 Stream your screen into Minecraft in real time using colored blocks.
 
 ## Install
@@ -28,12 +26,17 @@ Your screen is downscaled to a configurable resolution (default 160×90) and ren
 
 - Paper Minecraft server 1.21.11
 - [Skript](https://github.com/SkriptLang/Skript) plugin
-- Python 3 (macOS — uses Quartz for window capture)
-- Python packages:
+- Python 3
 
-```bash
-pip3 install mss Pillow numpy mcrcon pyobjc-framework-Quartz
-```
+**Platform-specific dependencies:**
+
+| Platform | Extra dependency | Notes |
+|---|---|---|
+| macOS | `pyobjc-framework-Quartz` | Window capture works even when covered |
+| Windows | `pywin32` | Window capture works even when covered |
+| Linux | `wmctrl` (`sudo apt install wmctrl`) | Captures screen region; window must be visible |
+
+The install script handles all of this automatically.
 
 ## Setup
 

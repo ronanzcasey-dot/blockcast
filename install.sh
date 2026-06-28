@@ -3,6 +3,7 @@ set -e
 
 REPO="https://raw.githubusercontent.com/ronanzcasey-dot/blockcast/main"
 INSTALL_DIR="$HOME/blockcast"
+OS="$(uname -s)"
 
 echo ""
 echo "┌─────────────────────────────┐"
@@ -13,20 +14,48 @@ echo ""
 
 # ── Python check ──────────────────────────────────────────────────────────────
 if ! command -v python3 &>/dev/null; then
-    echo "❌  Python 3 not found. Install it from https://python.org and re-run."
+    echo "❌  Python 3 not found."
+    if [ "$OS" = "Darwin" ]; then
+        echo "    Install from https://python.org or run: brew install python"
+    elif [ "$OS" = "Linux" ]; then
+        echo "    Run: sudo apt install python3 python3-pip"
+    fi
     exit 1
 fi
-
 echo "✔  Python 3 found: $(python3 --version)"
 
-# ── Install Python dependencies ───────────────────────────────────────────────
+# ── System dependencies ───────────────────────────────────────────────────────
+if [ "$OS" = "Linux" ]; then
+    if ! command -v wmctrl &>/dev/null; then
+        echo ""
+        echo "Installing wmctrl (needed for window selection)..."
+        sudo apt-get install -y wmctrl 2>/dev/null || sudo dnf install -y wmctrl 2>/dev/null || \
+            echo "  ⚠  Could not install wmctrl automatically. Run: sudo apt install wmctrl"
+    fi
+    echo "✔  wmctrl found"
+fi
+
+# ── Python dependencies ───────────────────────────────────────────────────────
 echo ""
 echo "Installing Python dependencies..."
-pip3 install -q mss Pillow numpy mcrcon pyobjc-framework-Quartz --break-system-packages 2>/dev/null \
-    || pip3 install -q mss Pillow numpy mcrcon pyobjc-framework-Quartz
+
+BASE_DEPS="mss Pillow numpy mcrcon"
+
+if [ "$OS" = "Darwin" ]; then
+    EXTRA_DEPS="pyobjc-framework-Quartz"
+elif [ "$OS" = "Linux" ]; then
+    EXTRA_DEPS=""
+else
+    # Windows (Git Bash / WSL)
+    EXTRA_DEPS="pywin32"
+fi
+
+pip3 install -q $BASE_DEPS $EXTRA_DEPS --break-system-packages 2>/dev/null \
+    || pip3 install -q $BASE_DEPS $EXTRA_DEPS
 echo "✔  Dependencies installed"
 
 # ── Download files ────────────────────────────────────────────────────────────
+echo ""
 mkdir -p "$INSTALL_DIR"
 curl -fsSL "$REPO/screen_capture.py" -o "$INSTALL_DIR/screen_capture.py"
 curl -fsSL "$REPO/screen_display.sk" -o "$INSTALL_DIR/screen_display.sk"
@@ -38,7 +67,6 @@ echo "────────────────────────�
 echo "  Configuration"
 echo "─────────────────────────────────"
 echo ""
-
 read -p "  Minecraft username: " MC_USER
 read -p "  RCON password (from server.properties): " RCON_PASS
 read -p "  RCON host (default: 127.0.0.1): " RCON_HOST
@@ -46,13 +74,21 @@ RCON_HOST="${RCON_HOST:-127.0.0.1}"
 read -p "  RCON port (default: 25575): " RCON_PORT
 RCON_PORT="${RCON_PORT:-25575}"
 
-sed -i '' \
-    -e "s/PLAYER        = \"YourUsername\"/PLAYER        = \"$MC_USER\"/" \
-    -e "s/RCON_PASSWORD = \"yourpassword\"/RCON_PASSWORD = \"$RCON_PASS\"/" \
-    -e "s/RCON_HOST     = \"127.0.0.1\"/RCON_HOST     = \"$RCON_HOST\"/" \
-    -e "s/RCON_PORT     = 25575/RCON_PORT     = $RCON_PORT/" \
-    "$INSTALL_DIR/screen_capture.py"
-
+if [ "$OS" = "Darwin" ]; then
+    sed -i '' \
+        -e "s/PLAYER        = \"YourUsername\"/PLAYER        = \"$MC_USER\"/" \
+        -e "s/RCON_PASSWORD = \"yourpassword\"/RCON_PASSWORD = \"$RCON_PASS\"/" \
+        -e "s/RCON_HOST     = \"127.0.0.1\"/RCON_HOST     = \"$RCON_HOST\"/" \
+        -e "s/RCON_PORT     = 25575/RCON_PORT     = $RCON_PORT/" \
+        "$INSTALL_DIR/screen_capture.py"
+else
+    sed -i \
+        -e "s/PLAYER        = \"YourUsername\"/PLAYER        = \"$MC_USER\"/" \
+        -e "s/RCON_PASSWORD = \"yourpassword\"/RCON_PASSWORD = \"$RCON_PASS\"/" \
+        -e "s/RCON_HOST     = \"127.0.0.1\"/RCON_HOST     = \"$RCON_HOST\"/" \
+        -e "s/RCON_PORT     = 25575/RCON_PORT     = $RCON_PORT/" \
+        "$INSTALL_DIR/screen_capture.py"
+fi
 echo "✔  Config saved"
 
 # ── Skript install ────────────────────────────────────────────────────────────
@@ -62,7 +98,6 @@ echo "  Skript Setup"
 echo "─────────────────────────────────"
 echo ""
 
-# Try to auto-detect server
 DETECTED=""
 for candidate in \
     "$HOME/minecraft-*/plugins/Skript/scripts" \
@@ -70,7 +105,6 @@ for candidate in \
     "$HOME/Desktop/server/plugins/Skript/scripts" \
     "$HOME/Documents/server/plugins/Skript/scripts"
 do
-    # expand glob manually
     for d in $candidate; do
         if [ -d "$d" ]; then
             DETECTED="$d"
@@ -94,10 +128,10 @@ if [ -z "$SK_INSTALLED" ]; then
     read -p "  Path to your Skript scripts folder (or press Enter to skip): " SK_PATH
     if [ -n "$SK_PATH" ] && [ -d "$SK_PATH" ]; then
         cp "$INSTALL_DIR/screen_display.sk" "$SK_PATH/screen_display.sk"
-        echo "✔  Skript installed to $SK_PATH"
+        echo "✔  Skript installed"
     else
-        echo "  Skipped — copy $INSTALL_DIR/screen_display.sk into your server's"
-        echo "  plugins/Skript/scripts/ folder manually."
+        echo "  Skipped — copy $INSTALL_DIR/screen_display.sk into your"
+        echo "  server's plugins/Skript/scripts/ folder manually."
     fi
 fi
 
