@@ -24,8 +24,8 @@ from Quartz import (CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly,
 
 RCON_HOST     = "127.0.0.1"
 RCON_PORT     = 25575
-RCON_PASSWORD = "npcadmin"
-PLAYER        = "rizzguy"
+RCON_PASSWORD = "yourpassword"   # set this to your rcon.password in server.properties
+PLAYER        = "YourUsername"   # your Minecraft username
 
 SCREEN_W    = 160
 SCREEN_H    = 90
